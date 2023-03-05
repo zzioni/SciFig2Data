@@ -4,7 +4,7 @@ import copy
 from tqdm import tqdm
 
 
-def train_model(model, dataloaders, criterion, optimizer, device, num_epochs=25, is_inception=False):
+def train_model(model, dataloaders, criterion, optimizer, device, output_dir, num_epochs=25):
     since = time.time()
 
     train_acc_history = []
@@ -39,18 +39,8 @@ def train_model(model, dataloaders, criterion, optimizer, device, num_epochs=25,
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
-                    # Special case for inception because in training it has an auxiliary output. In train
-                    #   mode we calculate the loss by summing the final output and the auxiliary output
-                    #   but in testing we only consider the final output.
-                    if is_inception and phase == 'train':
-                        # From https://discuss.pytorch.org/t/how-to-optimize-inception-model-with-auxiliary-classifiers/7958
-                        outputs, aux_outputs = model(inputs)
-                        loss1 = criterion(outputs, labels)
-                        loss2 = criterion(aux_outputs, labels)
-                        loss = loss1 + 0.4*loss2
-                    else:
-                        outputs = model(inputs)
-                        loss = criterion(outputs, labels)
+                    outputs = model(inputs)
+                    loss = criterion(outputs, labels)
 
                     _, preds = torch.max(outputs, 1)
 
@@ -72,8 +62,10 @@ def train_model(model, dataloaders, criterion, optimizer, device, num_epochs=25,
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
+                torch.save(model.state_dict(), os.path.join(opt.output_dir, 'best.pt'))
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
+                torch.save(model.state_dict(), os.path.join(opt.output_dir, 'last.pt'))
             if phase == 'train':
                 train_acc_history.append(epoch_acc)
 

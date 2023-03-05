@@ -25,7 +25,7 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
         utils.set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs, num_classes)
-        input_size = 224
+        input_size = 384
 
     elif model_name == "vgg":
         """ VGG16
@@ -34,21 +34,7 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
         utils.set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.classifier[6].in_features
         model_ft.classifier[6] = nn.Linear(num_ftrs,num_classes)
-        input_size = 224
-
-    elif model_name == "inception":
-        """ Inception v3 
-        Be careful, expects (299,299) sized images and has auxiliary output
-        """
-        model_ft = models.inception_v3(pretrained=use_pretrained)
-        utils.set_parameter_requires_grad(model_ft, feature_extract)
-        # Handle the auxilary net
-        num_ftrs = model_ft.AuxLogits.fc.in_features
-        model_ft.AuxLogits.fc = nn.Linear(num_ftrs, num_classes)
-        # Handle the primary net
-        num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs,num_classes)
-        input_size = 299
+        input_size = 384
         
     elif model_name == "resnext":
         """ resnext101_32x8d
@@ -57,7 +43,7 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
         utils.set_parameter_requires_grad(model_ft, feature_extract)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs,num_classes)
-        input_size = 224
+        input_size = 384
 
     else:
         print("Invalid model name, exiting...")

@@ -24,6 +24,7 @@ https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.ht
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default="/data0/jiyeong/DocFigure/", help='data path')
+    parser.add_argument('--output_dir', type=str, help='output path')
     parser.add_argument('--model_name', type=str, default='resnet', help='model name str')
     parser.add_argument('--epochs', type=int, default=300)
     parser.add_argument('--batch_size', type=int, default=16)
@@ -32,19 +33,21 @@ if __name__ == '__main__':
     parser.add_argument('--feature_extract', default=True, help='When False, we finetune the whole model, when True we only update the reshaped layer params')
     opt = parser.parse_args()
 
-
     # Initialize the model for this run
     model_ft, input_size = model.initialize_model(opt.model_name, opt.num_classes, opt.feature_extract, use_pretrained=True)
 
     # Print the model we just instantiated
     print(model_ft)
+    
+    # Make Output Dir
+    os.makedirs(opt.output_dir, exist_ok=True)
 
     # Data augmentation and normalization for training
     # Just normalization for validation
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(input_size),
-            transforms.RandomHorizontalFlip(),
+            transforms.Resize(input_size),
+            transforms.CenterCrop(input_size),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -55,6 +58,7 @@ if __name__ == '__main__':
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
     }
+    
     
     # labelnames
     labelNames_docfigure = ['3D objects',
@@ -130,7 +134,8 @@ if __name__ == '__main__':
 
     # Train and evaluate
     model_ft, train_hist, val_hist = trainer.train_model(model_ft, dataloaders_dict, criterion,
-                                                         optimizer_ft, device=device, num_epochs=opt.epochs, is_inception=(opt.model_name=="inception"))
+                                                         optimizer_ft, device=device, output_dir=opt.output_dir,
+                                                         num_epochs=opt.epochs)
 
     # Evaluate : Plot
     train_hist = [h.cpu().numpy() for h in train_hist]
@@ -144,4 +149,4 @@ if __name__ == '__main__':
     plt.ylim((0,1.))
     plt.xticks(np.arange(1, opt.epochs+1, 1.0))
     plt.legend()
-    plt.savefig('train_result/train_val_acc_{}.png'.format(opt.model_name))   # save the figure to file
+    plt.savefig(os.path.join(opt.output_dir, 'train_val_acc.png'))   # save the figure to file
