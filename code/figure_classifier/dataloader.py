@@ -9,7 +9,7 @@ import os
 import io
 
 
-class DocfigureDataset(Dataset):
+class FigureClassificationDataset(Dataset):
     def __init__(self, root, labelnames, train = False, transforms = None):
         
         self.root = root
@@ -57,5 +57,3 @@ class DocfigureDataset(Dataset):
             image = Image.open(img_file_path).convert('RGB')
             self.images.append(image)
             self.labels.append(self.labelnames.index(label.strip()))
-
-        
